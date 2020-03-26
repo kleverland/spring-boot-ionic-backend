@@ -20,13 +20,12 @@ public class JWTUtil {
 
 	public String generateToken(String username) {
 		return Jwts.builder().setSubject(username).setExpiration(new Date(System.currentTimeMillis() + expiration))
-				.signWith(SignatureAlgorithm.HS512, secret).compact();
+				.signWith(SignatureAlgorithm.HS512, secret.getBytes()).compact();
 	}
 
 	public boolean tokenValido(String token) {
 
 		Claims claims = getClaims(token);
-
 		if (claims != null) {
 			String username = claims.getSubject();
 			Date expirationDate = claims.getExpiration();
@@ -35,7 +34,6 @@ public class JWTUtil {
 				return true;
 			}
 		}
-
 		return false;
 	}
 	

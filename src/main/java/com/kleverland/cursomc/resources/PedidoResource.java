@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.kleverland.cursomc.domain.Categoria;
 import com.kleverland.cursomc.domain.Pedido;
-import com.kleverland.cursomc.dto.CategoriaDTO;
 import com.kleverland.cursomc.services.PedidoService;
 
 @RestController
