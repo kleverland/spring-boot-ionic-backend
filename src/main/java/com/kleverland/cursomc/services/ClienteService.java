@@ -17,12 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kleverland.cursomc.domain.Cidade;
 import com.kleverland.cursomc.domain.Cliente;
 import com.kleverland.cursomc.domain.Endereco;
+import com.kleverland.cursomc.domain.enums.Perfil;
 import com.kleverland.cursomc.domain.enums.TipoCliente;
 import com.kleverland.cursomc.dto.ClienteDTO;
 import com.kleverland.cursomc.dto.ClienteNewDTO;
 import com.kleverland.cursomc.repositories.CidadeRepository;
 import com.kleverland.cursomc.repositories.ClienteRepository;
 import com.kleverland.cursomc.repositories.EnderecoRepository;
+import com.kleverland.cursomc.security.UserSS;
+import com.kleverland.cursomc.services.exception.AuthorizationException;
 import com.kleverland.cursomc.services.exception.DataIntegrityException;
 import com.kleverland.cursomc.services.exception.ObjectNotFoundException;
 
@@ -42,6 +45,12 @@ public class ClienteService {
 	private BCryptPasswordEncoder pe;
 
 	public Cliente find(Integer id) {
+		
+		UserSS user = UserService.authenticated();
+		if(user==null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		
 		Optional<Cliente> obj = repo.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
 				"Objeto não encontrado! Id: " + id + ", Tipo: " + Cliente.class.getName()));
