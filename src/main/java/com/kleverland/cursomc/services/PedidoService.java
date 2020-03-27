@@ -6,8 +6,12 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
+import com.kleverland.cursomc.domain.Cliente;
 import com.kleverland.cursomc.domain.ItemPedido;
 import com.kleverland.cursomc.domain.PagamentoComBoleto;
 import com.kleverland.cursomc.domain.Pedido;
@@ -16,6 +20,8 @@ import com.kleverland.cursomc.repositories.ItemPedidoRepository;
 import com.kleverland.cursomc.repositories.PagamentoRepository;
 import com.kleverland.cursomc.repositories.PedidoRepository;
 import com.kleverland.cursomc.repositories.ProdutoRepository;
+import com.kleverland.cursomc.security.UserSS;
+import com.kleverland.cursomc.services.exception.AuthorizationException;
 import com.kleverland.cursomc.services.exception.ObjectNotFoundException;
 
 @Service
@@ -29,6 +35,9 @@ public class PedidoService {
 	
 	@Autowired
 	private PedidoRepository repo;
+	
+	@Autowired
+	private ClienteService clienteService;
 	
 	@Autowired
 	private ProdutoRepository produtoRepository;
@@ -63,4 +72,13 @@ public class PedidoService {
 		
 		return obj;
 	}
+	
+	public Page<Pedido> findPage(Integer page, Integer linesPerPage, String orderBy, String direction){
+		UserSS user = UserService.authenticated();
+		if(user == null) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		PageRequest pageRequest = PageRequest.of(page, linesPerPage, Direction.valueOf(direction), orderBy);
+		Cliente cliente =  clienteService.find(user.getId());
+		return repo.findByCliente(cliente, pageRequest);	}
 }
