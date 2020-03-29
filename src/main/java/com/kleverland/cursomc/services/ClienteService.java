@@ -21,7 +21,6 @@ import com.kleverland.cursomc.domain.enums.Perfil;
 import com.kleverland.cursomc.domain.enums.TipoCliente;
 import com.kleverland.cursomc.dto.ClienteDTO;
 import com.kleverland.cursomc.dto.ClienteNewDTO;
-import com.kleverland.cursomc.repositories.CidadeRepository;
 import com.kleverland.cursomc.repositories.ClienteRepository;
 import com.kleverland.cursomc.repositories.EnderecoRepository;
 import com.kleverland.cursomc.security.UserSS;
@@ -35,8 +34,8 @@ public class ClienteService {
 	@Autowired
 	private ClienteRepository repo;
 
-	@Autowired
-	private CidadeRepository cidadeRepository;
+//	@Autowired
+//	private CidadeRepository cidadeRepository;
 
 	@Autowired
 	private EnderecoRepository enderecoRepository;

@@ -3,13 +3,12 @@ package com.kleverland.cursomc.services;
 import java.util.Date;
 import java.util.Optional;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kleverland.cursomc.domain.Cliente;
 import com.kleverland.cursomc.domain.ItemPedido;
@@ -19,7 +18,6 @@ import com.kleverland.cursomc.domain.enums.EstadoPagamento;
 import com.kleverland.cursomc.repositories.ItemPedidoRepository;
 import com.kleverland.cursomc.repositories.PagamentoRepository;
 import com.kleverland.cursomc.repositories.PedidoRepository;
-import com.kleverland.cursomc.repositories.ProdutoRepository;
 import com.kleverland.cursomc.security.UserSS;
 import com.kleverland.cursomc.services.exception.AuthorizationException;
 import com.kleverland.cursomc.services.exception.ObjectNotFoundException;
@@ -40,7 +38,7 @@ public class PedidoService {
 	private ClienteService clienteService;
 	
 	@Autowired
-	private ProdutoRepository produtoRepository;
+	private ProdutoService produtoService;
 	
 	@Autowired
 	private ItemPedidoRepository itemPedidoRepository;
@@ -50,26 +48,26 @@ public class PedidoService {
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
 				"Objeto não encontrado! Id: " + id + ", Tipo: " + Pedido.class.getName()));	}
 
-	public @Valid Pedido insert(@Valid Pedido obj) {
+	public Pedido insert(Pedido obj) {
 		obj.setId(null);
 		obj.setInstante(new Date());
+		obj.setCliente(clienteService.find(obj.getCliente().getId()));
 		obj.getPagamento().setEstado(EstadoPagamento.PENDENTE);
 		obj.getPagamento().setPedido(obj);
-		if(obj.getPagamento() instanceof PagamentoComBoleto) {
+		if (obj.getPagamento() instanceof PagamentoComBoleto) {
 			PagamentoComBoleto pagto = (PagamentoComBoleto) obj.getPagamento();
-			boletoService.preencherPagamentoComBoleto(pagto,obj.getInstante());
+			boletoService.preencherPagamentoComBoleto(pagto, obj.getInstante());
 		}
 		obj = repo.save(obj);
 		pagamentoRepository.save(obj.getPagamento());
-		
-		for(ItemPedido ip: obj.getItens()) {
+		for (ItemPedido ip : obj.getItens()) {
 			ip.setDesconto(0.0);
-			ip.setPreco(produtoRepository.findById(ip.getProduto().getId()).get().getPreco());
+			ip.setProduto(produtoService.find(ip.getProduto().getId()));
+			ip.setPreco(ip.getProduto().getPreco());
 			ip.setPedido(obj);
-			
 		}
 		itemPedidoRepository.saveAll(obj.getItens());
-		
+		System.out.println(obj);
 		return obj;
 	}
 	
