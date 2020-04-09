@@ -1,5 +1,6 @@
 package com.kleverland.cursomc.services;
 
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -7,6 +8,7 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,20 +43,26 @@ public class ClienteService {
 
 	@Autowired
 	private EnderecoRepository enderecoRepository;
-	
+
 	@Autowired
 	private BCryptPasswordEncoder pe;
 
 	@Autowired
 	private S3Service s3Service;
-	
+
+	@Autowired
+	private ImageService imageService;
+
+	@Value("${img.prefix.client.profile}")
+	private String prefix;
+
 	public Cliente find(Integer id) {
-		
+
 		UserSS user = UserService.authenticated();
-		if(user==null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
+		if (user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
 			throw new AuthorizationException("Acesso negado");
 		}
-		
+
 		Optional<Cliente> obj = repo.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
 				"Objeto não encontrado! Id: " + id + ", Tipo: " + Cliente.class.getName()));
@@ -94,7 +102,7 @@ public class ClienteService {
 	}
 
 	public Cliente fromDTO(ClienteDTO objDto) {
-		return new Cliente(objDto.getId(), objDto.getNome(), objDto.getEmail(), null, null,null);
+		return new Cliente(objDto.getId(), objDto.getNome(), objDto.getEmail(), null, null, null);
 	}
 
 	private void updateData(Cliente newObj, Cliente obj) {
@@ -121,21 +129,17 @@ public class ClienteService {
 
 		return cli;
 	}
-	
+
 	public URI uploadProfilePicture(MultipartFile multipartFile) {
 		UserSS user = UserService.authenticated();
-		if(user == null) {
+		if (user == null) {
 			throw new AuthorizationException("Acesso negado.");
 		}
-		
-		URI uri = s3Service.uploadFile(multipartFile);
-		
-		Optional<Cliente> cli = repo.findById(user.getId());
 
-		cli.get().setImageURL(uri.toString());
-		repo.save(cli.get());
-		
-		return uri;
+		BufferedImage jpgImage = imageService.getJpgImageFromFile(multipartFile);
+		String fileName = prefix + user.getId() + ".jpg";
+
+		return s3Service.uploadFile(imageService.getInputStream(jpgImage, "jpg"), fileName, "image");
 	}
 
 }
