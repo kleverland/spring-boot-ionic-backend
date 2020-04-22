@@ -205,11 +205,11 @@ public class DBService {
 		estadorepository.saveAll(Arrays.asList(est1, est2));
 		cidaderepository.saveAll(Arrays.asList(c1, c2, c3));
 
-		Cliente cli1 = new Cliente(null, "Kleverland Cursos", "kleverland.cursos@gmail.com", "36378912377",
+		Cliente cli1 = new Cliente(null, "Maria Silva", "kleverland.cursos@gmail.com", "36378912377",
 				TipoCliente.PESSOAFISICA, pe.encode("123"));
 		cli1.getTelefones().addAll(Arrays.asList("27363323", "93838393"));
 
-		Cliente cli2 = new Cliente(null, "Kleverland Formiga", "kleverland@gmail.com", "97681764070",
+		Cliente cli2 = new Cliente(null, "Joana Costa", "kleverland@gmail.com", "97681764070",
 				TipoCliente.PESSOAFISICA, pe.encode("123"));
 		cli2.getTelefones().addAll(Arrays.asList("34562737", "999837363"));
 		cli2.addPerfil(Perfil.ADMIN);
